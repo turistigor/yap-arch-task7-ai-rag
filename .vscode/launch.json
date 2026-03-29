@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "create_kdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "knowledge_base",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/knowledge-base",
+            "justMyCode": false,
+            "args": ["create"]
+        },
+        {
+            "name": "replace_kdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "knowledge_base",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/knowledge-base",
+            "justMyCode": false,
+            "args": ["replace"]
+        },
+        {
+            "name": "kdb_all",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "knowledge_base",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/knowledge-base",
+            "justMyCode": false,
+            "args": ["all"]
+        }
+    ]
+}
