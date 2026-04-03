@@ -33,6 +33,45 @@
             "cwd": "${workspaceFolder}/knowledge-base",
             "justMyCode": false,
             "args": ["all"]
+        },
+        {
+            "name": "run bot",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": ["run_bot"],
+            "env": {
+                "OLLAMA_LOAD_IN_GPU": "1"
+            }
+        },
+        {
+            "name": "test embs",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": ["test_embeddings"],
+            "env": {
+                "OLLAMA_LOAD_IN_GPU": "1"
+            }
+        },
+        {
+            "name": "test rag bot",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": ["test_rag_bot"],
+            "env": {
+                "OLLAMA_LOAD_IN_GPU": "1"
+            }
         }
     ]
 }
