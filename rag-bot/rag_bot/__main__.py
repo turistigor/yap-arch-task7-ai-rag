@@ -19,9 +19,11 @@ KNOWLEDGE_BASE_CHANGED_DIR = '../knowledge-base/data_replaced'
 VDB_PATH = '../vdb'
 
 
-def get_settings() -> tuple:
+def get_settings(
+    embeddings_model: str, vdb: str, llm: str,
+) -> tuple:
     llm_data = st.LLMData(
-        name=consts.QWEN_2_5_3B,
+        name=llm,
         base_url=consts.OLAMA_BASE_URL,
         temperature=0.1,
         num_ctx=8192,
@@ -32,7 +34,7 @@ def get_settings() -> tuple:
         top_p=0.9
     )
     embeddings_data = st.EmbeddingsModelData(
-        name=consts.MULTILINGUAL_E5_SMALL,
+        name=embeddings_model,
         chunk_size=500,
         chunk_overlap=200,
         num_ctx=8192,
@@ -40,6 +42,7 @@ def get_settings() -> tuple:
         num_thread=8,
     )
     retreiver_data = st.RetrieverData(
+        vdb=vdb,
         search_type=consts.MMR_SEARCH_TYPE,
         docs_count=5,
         lambda_mult=0,
@@ -60,14 +63,19 @@ ARG_ERROR_MESSAGE = f'Укажите допустимую операцию:\n' \
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        logger.error()
+    argc = len(sys.argv)
+    if argc < 2:
+        logger.error('Укажите тип операции')
         exit()
     else:
         operation = sys.argv[1]
 
+        embeddings_model = sys.argv[2] if argc >= 3 else consts.MULTILINGUAL_E5_SMALL
+        vdb = sys.argv[3] if argc >= 4 else consts.CHROMA_DB
+        llm = sys.argv[4] if argc >= 5 else consts.QWEN_2_5_3B
+
     os.makedirs(VDB_PATH, exist_ok=True)
-    llm_data, embeddings_data, retreiver_data = get_settings()
+    llm_data, embeddings_data, retreiver_data = get_settings(embeddings_model, vdb, llm)
 
     if operation == Operations.RUN_BOT:
         logger.info('Model creating started...')

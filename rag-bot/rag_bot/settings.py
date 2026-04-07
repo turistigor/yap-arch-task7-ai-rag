@@ -28,6 +28,7 @@ class EmbeddingsModelData:
 
 @dataclass(kw_only=True, frozen=True, eq=False)
 class RetrieverData:
+    vdb: str
     search_type: str
     docs_count: int
     lambda_mult: float

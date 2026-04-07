@@ -53,7 +53,7 @@ def create_retriever(
     retriever_data: st.RetrieverData,
 ) -> VectorStoreRetriever:
 
-    vector_db = _get_vdb(kdb_path, vdb_path, embeddings_model)
+    vector_db = _get_vdb(kdb_path, vdb_path, embeddings_model, retriever_data.vdb)
     return vector_db.as_retriever(
         search_type=retriever_data.search_type,
         search_kwargs={"k": retriever_data.docs_count},
@@ -147,40 +147,49 @@ def _create_embeddings(embeddings_model: str) -> Embeddings:
 
 
 def _get_vdb(
-    kdb_path: str, vdb_path: str, embeddings_model: st.EmbeddingsModelData,
+    kdb_path: str,
+    vdb_path: str,
+    embeddings_model: st.EmbeddingsModelData,
+    vdb_name: str,
 ) -> VectorStore:
 
     embeddings = _create_embeddings(embeddings_model.name)
 
     if os.path.exists(vdb_path) and os.listdir(vdb_path):
-        vector_db = _get_vdb_obj(vdb_path, embeddings)
+        vector_db = _get_vdb_obj(vdb_path, embeddings, vdb_name)
         logger.info("Existing vector db loaded")
     else:
         documents = _load_documents(kdb_path)
         chunks = _split_documents(
             documents, embeddings_model.chunk_size, embeddings_model.chunk_overlap,
         )
-        vector_db = _create_vdb(vdb_path, chunks, embeddings)
+        vector_db = _create_vdb(vdb_path, chunks, embeddings, vdb_name)
         logger.info("Vector db created")
 
     return vector_db
 
 
 def _create_vdb(
-    vdb_path: str, chunks: Iterator[Document], embeddings: Embeddings,
+    vdb_path: str, chunks: Iterator[Document], embeddings: Embeddings, vdb_name: str,
 ) -> VectorStore:
-    return Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
-        persist_directory=vdb_path,
-    )
+    if vdb_name == consts.CHROMA_DB:
+        return Chroma.from_documents(
+            documents=chunks,
+            embedding=embeddings,
+            persist_directory=vdb_path,
+        )
+    else:
+        raise ValueError(f'{vdb_name} is not supported')
 
 
-def _get_vdb_obj(vdb_path: str, embeddings: Embeddings) -> VectorStore:
-    return Chroma(
-        persist_directory=vdb_path,
-        embedding_function=embeddings,
-    )
+def _get_vdb_obj(vdb_path: str, embeddings: Embeddings, vdb_name: str) -> VectorStore:
+    if vdb_name == consts.CHROMA_DB:
+        return Chroma(
+            persist_directory=vdb_path,
+            embedding_function=embeddings,
+        )
+    else:
+        raise ValueError(f'{vdb_name} is not supported')
 
 
 def _create_llm(llm_data: st.LLMData) -> BaseChatModel:

@@ -55,7 +55,12 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/rag-bot",
             "justMyCode": false,
-            "args": ["test_embeddings"],
+            "args": [
+                "test_embeddings",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+                "qwen2.5:3b"
+            ],
             "env": {
                 "OLLAMA_LOAD_IN_GPU": "1"
             }
@@ -68,7 +73,12 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/rag-bot",
             "justMyCode": false,
-            "args": ["test_rag_bot"],
+            "args": [
+                "test_rag_bot", 
+                "intfloat/multilingual-e5-small",
+                "chroma",
+                "qwen2.5:3b"
+            ],
             "env": {
                 "OLLAMA_LOAD_IN_GPU": "1"
             }
