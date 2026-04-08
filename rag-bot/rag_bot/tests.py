@@ -99,8 +99,18 @@ complex_questions = (
 )
 
 
+def test_vdb(retriever: BaseRetriever):
+    logger.info('Vector db index test question')
+    docs = _find_document(retriever, heating_questions[0])
+    for doc in docs:
+        print('\nFound chunk:')
+        print(f'{doc.id=}')
+        print(f'{doc.metadata['source']=}')
+        print(f'{doc.page_content=}')
+
+
 def test_retriever(retriever: BaseRetriever):
-    logger.info('Retreiver test started...\n')
+    logger.info('Retriever test started...\n')
 
     logger.info('Simple questions:')
     _find_documents(retriever, simple_questions)
@@ -113,7 +123,7 @@ def test_rag_bot(rag_chain: Runnable):
     logger.info('Heating questions:')
     _ask_questions(rag_chain, heating_questions)
 
-    logger.info('Retreiver test started...\n')
+    logger.info('Retriever test started...\n')
 
     start = datetime.now()
 

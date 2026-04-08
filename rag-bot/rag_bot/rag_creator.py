@@ -27,11 +27,11 @@ def create_rag_chain(
     kdb_path: str,
     vdb_path: str,
     llm_data: st.LLMData,
-    embeddings_model: st.EmbeddingsModelData,
-    retreiver_data: st.RetrieverData,
+    embeddings_data: st.EmbeddingsModelData,
+    retriever_data: st.RetrieverData,
 ) -> Runnable:
 
-    retriever = create_retriever(kdb_path, vdb_path, embeddings_model, retreiver_data)
+    retriever = create_retriever(kdb_path, vdb_path, embeddings_data, retriever_data)
     llm = _create_llm(llm_data)
     prompt_template = _create_prompt_template()
 
@@ -49,11 +49,11 @@ def create_rag_chain(
 def create_retriever(
     kdb_path: str,
     vdb_path: str,
-    embeddings_model: st.EmbeddingsModelData,
+    embeddings_data: st.EmbeddingsModelData,
     retriever_data: st.RetrieverData,
 ) -> VectorStoreRetriever:
 
-    vector_db = _get_vdb(kdb_path, vdb_path, embeddings_model, retriever_data.vdb)
+    vector_db = get_vdb(kdb_path, vdb_path, embeddings_data, retriever_data.vdb)
     return vector_db.as_retriever(
         search_type=retriever_data.search_type,
         search_kwargs={"k": retriever_data.docs_count},
@@ -146,14 +146,14 @@ def _create_embeddings(embeddings_model: str) -> Embeddings:
     return embeddings
 
 
-def _get_vdb(
+def get_vdb(
     kdb_path: str,
     vdb_path: str,
-    embeddings_model: st.EmbeddingsModelData,
+    embeddings_data: st.EmbeddingsModelData,
     vdb_name: str,
 ) -> VectorStore:
 
-    embeddings = _create_embeddings(embeddings_model.name)
+    embeddings = _create_embeddings(embeddings_data.name)
 
     if os.path.exists(vdb_path) and os.listdir(vdb_path):
         vector_db = _get_vdb_obj(vdb_path, embeddings, vdb_name)
@@ -161,7 +161,7 @@ def _get_vdb(
     else:
         documents = _load_documents(kdb_path)
         chunks = _split_documents(
-            documents, embeddings_model.chunk_size, embeddings_model.chunk_overlap,
+            documents, embeddings_data.chunk_size, embeddings_data.chunk_overlap,
         )
         vector_db = _create_vdb(vdb_path, chunks, embeddings, vdb_name)
         logger.info("Vector db created")

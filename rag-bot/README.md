@@ -15,6 +15,41 @@ uv sync
 source .venv/bin/activate
 ```
 
+## Создание индекса векторной БД
+
+Произвести [начальную настройку](#начальная-настройка).  
+
+Выполнить команды:
+```bash
+cd <project_dir>/rag-bot
+
+# Удалить ранее созданную БД (если есть)
+rm -rf <project_dir>/vdb
+
+# Запустить тест
+python3 -m rag_bot create_vdb <embeddings_model> <vector_db>
+# python3 -m rag_bot test_embeddings intfloat/multilingual-e5-small chroma
+```
+
+Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
+
+В результате выполнения в корне проекта появится папка vdb с векторным индексом.
+
+## Тестирвоание индекса векторной БД
+
+Произвести [начальную настройку](#начальная-настройка).  
+
+Выполнить команды:
+```bash
+cd <project_dir>/rag-bot
+
+# Запустить тест
+python3 -m rag_bot test_vdb <embeddings_model> <vector_db>
+# python3 -m rag_bot test_embeddings intfloat/multilingual-e5-small chroma
+```
+
+Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
+
 ## Тестирования моделей эмбеддингнов
 
 Произвести [начальную настройку](#начальная-настройка).

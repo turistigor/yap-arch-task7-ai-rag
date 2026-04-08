@@ -35,6 +35,23 @@
             "args": ["all"]
         },
         {
+            "name": "create_vdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "create_vdb",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+            ],
+            "env": {
+                "OLLAMA_LOAD_IN_GPU": "1"
+            }
+        },
+        {
             "name": "run bot",
             "type": "debugpy",
             "request": "launch",
@@ -42,7 +59,29 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/rag-bot",
             "justMyCode": false,
-            "args": ["run_bot"],
+            "args": [
+                "run_bot",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+                "qwen2.5:3b"
+            ],
+            "env": {
+                "OLLAMA_LOAD_IN_GPU": "1"
+            }
+        },
+        {
+            "name": "test_vdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "test_vdb",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+            ],
             "env": {
                 "OLLAMA_LOAD_IN_GPU": "1"
             }
