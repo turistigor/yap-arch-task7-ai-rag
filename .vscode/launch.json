@@ -48,11 +48,12 @@
                 "chroma",
             ],
             "env": {
-                "OLLAMA_LOAD_IN_GPU": "1"
+                "HF_TOKEN": "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",
+                "HF_HUB_OFFLINE": "1"
             }
         },
         {
-            "name": "run bot",
+            "name": "run_bot",
             "type": "debugpy",
             "request": "launch",
             "module": "rag_bot",
@@ -63,10 +64,14 @@
                 "run_bot",
                 "intfloat/multilingual-e5-small",
                 "chroma",
-                "qwen2.5:3b"
+                "gemma4:e2b",
+                // "minimal",
+                // "few_shot"
+                "cot"
             ],
             "env": {
-                "OLLAMA_LOAD_IN_GPU": "1"
+                "HF_TOKEN": "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",
+                "HF_HUB_OFFLINE": "1"
             }
         },
         {
@@ -83,7 +88,8 @@
                 "chroma",
             ],
             "env": {
-                "OLLAMA_LOAD_IN_GPU": "1"
+                "HF_TOKEN": "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",
+                "HF_HUB_OFFLINE": "1"
             }
         },
         {
@@ -101,7 +107,8 @@
                 "qwen2.5:3b"
             ],
             "env": {
-                "OLLAMA_LOAD_IN_GPU": "1"
+                "HF_TOKEN": "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",
+                "HF_HUB_OFFLINE": "1"
             }
         },
         {
@@ -119,7 +126,8 @@
                 "qwen2.5:3b"
             ],
             "env": {
-                "OLLAMA_LOAD_IN_GPU": "1"
+                "HF_TOKEN": "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",
+                "HF_HUB_OFFLINE": "1"
             }
         }
     ]

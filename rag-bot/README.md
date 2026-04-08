@@ -13,7 +13,18 @@ cd <project_dir>/rag-bot
 # Подготовить виртуальное окружение для запуска
 uv sync
 source .venv/bin/activate
+
+# Настроить переменные среды по образцу (rag-bot/.env.example)
+cp .env.example .env
+# Внести свой hugging-face токен в переменную
 ```
+
+<details><summary>Про hugging-face токены</summary>
+Можно довольно долго работать без токена (не указывать его в переменной среды HF_TOKEN).
+Но если при запуске (в процессе создания модели эмбеддингов) возникает HTTP 429 (To many requests), то необходимо зарегистроваться на https://huggingface.co/ и в разделе Settings->Tokens создать его и заполнить переменную HF_TOKEN.
+Для того, чтобы каждый раз не скачивать модель из Интернета, можно установить HF_HUB_OFFLINE=1. В этом случае модель будут искать в локально кэше (~/.cache/huggingface/hub).
+Но при первом запуске нужно выставить HF_HUB_OFFLINE=0, чтобы модель скачалась.
+</details>
 
 ## Создание индекса векторной БД
 
@@ -86,7 +97,7 @@ VDB creation time, min: 0.10293240000000001
 2026-04-07 12:28:44,431 - INFO - Average found percent: 70.00
 ```
 
-## Тестированияе LLM
+## Тестирование LLM
 
 Произвести [начальную настройку](#начальная-настройка).
 
@@ -109,3 +120,27 @@ python3 -m rag_bot test_rag_bot <embeddings_model> <vector_db> <llm>
 Анализ результатов производится на основе консольных логов:
 1. Среднее время выполнения было рассчитано вручную.
 2. Качество ответов было проанализировано вручную.
+
+
+## Запуск бота
+
+Произвести [начальную настройку](#начальная-настройка).
+
+Выполнить команды:
+```bash
+cd <project_dir>/rag-bot
+
+# Подготовить виртуальное окружение для запуска
+uv sync
+source .venv/bin/activate
+
+# Запустить тест
+python3 -m rag_bot run_bot <embeddings_model> <vector_db> <llm> <rag_mode>
+# python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma qwen2.5:3b minimal
+```
+rag_mode - режим RAG-пайплалайны. Сейчас предусмотрены:
+- minimal - отсутствуют техники промптинга
+- few_shot - добавление примеров (Few-Shot)
+- cot - вывод рассуждений бота (Chain-of-Thought)
+
+Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  

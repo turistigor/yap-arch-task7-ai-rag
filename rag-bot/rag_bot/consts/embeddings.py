@@ -7,7 +7,8 @@ ALL_MINILM = 'all-minilm'
 MXBAI_EMBED_LARGE = 'mxbai-embed-large'
 QWEN3_EMBEDDING_4B = 'qwen3-embedding:4b'
 NOMIC_EMBED_TEXT = 'nomic-embed-text'
-MULTILINGUAL_E5_SMALL = 'intfloat/multilingual-e5-small'
+MULTILINGUAL_E5_SMALL_IF = 'intfloat/multilingual-e5-small'
+MULTILINGUAL_E5_SMALL_QL = 'multilingual-e5-small'
 BGE_M3 = 'BAAI/bge-m3'
 
 # Common:

@@ -8,10 +8,12 @@ from langchain_core.vectorstores import VectorStoreRetriever
 
 import rag_bot.settings as st
 import rag_bot.tests as tests
+from rag_bot.logs import APP_LOG_LEVEL
 from rag_bot.rag_creator import create_rag_chain, create_retriever, get_vdb
 from rag_bot.rag_bot import run_bot
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -21,8 +23,9 @@ def launch_bot(
     llm_data: st.LLMData,
     embeddings_data: st.EmbeddingsModelData,
     retriever_data: st.RetrieverData,
+    rag_mode: str,
 ):
-    logger.info('Model creating started...')
+    logger.app_info('Model creating started...')
 
     rag_chain: Runnable = create_rag_chain(
         kdb_path=kdb_path,
@@ -30,9 +33,10 @@ def launch_bot(
         llm_data=llm_data,
         embeddings_data=embeddings_data,
         retriever_data=retriever_data,
+        mode=rag_mode,
     )
 
-    logger.info('Model has been successfuly created...')
+    logger.app_info('Model has been successfully created...')
     run_bot(rag_chain)
 
 
@@ -43,9 +47,9 @@ def create_vdb(
     retriever_data: st.RetrieverData,
 ):
 
-    logger.info('Vector db creation started...')
+    logger.app_info('Vector db creation started...')
     if os.path.exists(vdb_path) and os.listdir(vdb_path):
-        logger.info(f'Already exists ({vdb_path})')
+        logger.app_info(f'Already exists ({vdb_path})')
         return
 
     start = datetime.now()
@@ -56,7 +60,7 @@ def create_vdb(
         vdb_name=retriever_data.vdb,
     )
     elapsed = datetime.now() - start
-    logger.info(f'Vector db creatred in {(elapsed.total_seconds() / 60):.2f} min')
+    logger.app_info(f'Vector db creatred in {(elapsed.total_seconds() / 60):.2f} min')
 
 
 def test_vdb(
@@ -89,7 +93,7 @@ def test_embeddings(
         retriever_data=retriever_data,
     )
     elapsed = datetime.now() - start
-    logger.info(f'\nVDB creation time, min: {elapsed.total_seconds() / 60}')
+    logger.app_info(f'\nVDB creation time, min: {elapsed.total_seconds() / 60}')
 
     tests.test_retriever(retriever)
 
@@ -100,6 +104,7 @@ def test_rag_bot(
     llm_data: st.LLMData,
     embeddings_data: st.EmbeddingsModelData,
     retriever_data: st.RetrieverData,
+    rag_mode: str,
 ):
     rag_chain: Runnable = create_rag_chain(
         kdb_path=kdb_path,
@@ -107,6 +112,7 @@ def test_rag_bot(
         llm_data=llm_data,
         embeddings_data=embeddings_data,
         retriever_data=retriever_data,
+        mode=rag_mode,
     )
 
     test_rag_bot(rag_chain)

@@ -3,12 +3,17 @@ import logging
 import os
 import sys
 
+from dotenv import load_dotenv
+
 import rag_bot.settings as st
 import rag_bot.consts as consts
 from rag_bot.actions import create_vdb, launch_bot, test_embeddings, test_rag_bot, test_vdb
+from rag_bot.logs import APP_LOG_LEVEL
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+load_dotenv()
 
 KDB_PATH = '../knowledge-base/data_replaced'
 VDB_PATH = '../vdb'
@@ -70,12 +75,13 @@ if __name__ == '__main__':
         embeddings_model = sys.argv[2] if argc >= 3 else consts.MULTILINGUAL_E5_SMALL
         vdb_name = sys.argv[3] if argc >= 4 else consts.CHROMA_DB
         llm_name = sys.argv[4] if argc >= 5 else consts.QWEN_2_5_3B
+        rag_mode = sys.argv[5] if argc >= 6 else consts.RagMode
 
     os.makedirs(VDB_PATH, exist_ok=True)
     llm_data, embeddings_data, retriever_data = get_settings(embeddings_model, vdb_name, llm_name)
 
     if operation == Operations.RUN_BOT:
-        launch_bot(KDB_PATH, VDB_PATH, llm_data, embeddings_data, retriever_data)
+        launch_bot(KDB_PATH, VDB_PATH, llm_data, embeddings_data, retriever_data, rag_mode)
     elif operation == Operations.CREATE_VDB:
         create_vdb(KDB_PATH, VDB_PATH, embeddings_data, retriever_data)
     elif operation == Operations.TEST_VDB:
@@ -83,6 +89,6 @@ if __name__ == '__main__':
     elif operation == Operations.TEST_EMBEDDINGS:
         test_embeddings(KDB_PATH, VDB_PATH, embeddings_data, retriever_data)
     elif operation == Operations.TEST_RAG_BOT:
-        test_rag_bot(KDB_PATH, VDB_PATH, llm_data, embeddings_data, retriever_data)
+        test_rag_bot(KDB_PATH, VDB_PATH, llm_data, embeddings_data, retriever_data, rag_mode)
     else:
         logger.error('Input operation code')

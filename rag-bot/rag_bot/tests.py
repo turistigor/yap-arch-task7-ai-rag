@@ -8,8 +8,9 @@ from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import Runnable
 
+from rag_bot.logs import APP_LOG_LEVEL
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -100,7 +101,7 @@ complex_questions = (
 
 
 def test_vdb(retriever: BaseRetriever):
-    logger.info('Vector db index test question')
+    logger.app_info('Vector db index test question')
     docs = _find_document(retriever, heating_questions[0])
     for doc in docs:
         print('\nFound chunk:')
@@ -110,43 +111,43 @@ def test_vdb(retriever: BaseRetriever):
 
 
 def test_retriever(retriever: BaseRetriever):
-    logger.info('Retriever test started...\n')
+    logger.app_info('Retriever test started...\n')
 
-    logger.info('Simple questions:')
+    logger.app_info('Simple questions:')
     _find_documents(retriever, simple_questions)
 
-    logger.info('Complex questions:')
+    logger.app_info('Complex questions:')
     _find_documents(retriever, complex_questions)
 
 
 def test_rag_bot(rag_chain: Runnable):
-    logger.info('Heating questions:')
+    logger.app_info('Heating questions:')
     _ask_questions(rag_chain, heating_questions)
 
-    logger.info('Retriever test started...\n')
+    logger.app_info('Retriever test started...\n')
 
     start = datetime.now()
 
-    logger.info('Simple questions:')
+    logger.app_info('Simple questions:')
     _ask_questions(rag_chain, simple_questions)
 
-    logger.info('Complex questions:')
+    logger.app_info('Complex questions:')
     _ask_questions(rag_chain, complex_questions)
 
     elapsed = datetime.now() - start
-    logger.info(f'\nRag bot test duration, min: {elapsed.total_seconds() / 60}')
+    logger.app_info(f'\nRag bot test duration, min: {elapsed.total_seconds() / 60}')
 
 
 def _ask_questions(rag_chain: Runnable, questions: Iterator[Question]):
     for question in questions:
-        logger.info(question.text)
+        logger.app_info(question.text)
 
         try:
             answer = rag_chain.invoke(question.text)
         except Exception as ex:
             logger.error(ex)
         else:
-            logger.info(answer)
+            logger.app_info(answer)
 
 
 def _find_documents(retriever: BaseRetriever, questions: Iterator[Question]):
@@ -158,7 +159,7 @@ def _find_documents(retriever: BaseRetriever, questions: Iterator[Question]):
         print('\n')
     
     average_percent = sum(found_percents) / len(found_percents)
-    logger.info(f'Average found percent: {average_percent:.2f}')
+    logger.app_info(f'Average found percent: {average_percent:.2f}')
 
 
 def _analyze_docs(expected_docs: Iterator[str], docs: Iterator[Document]) -> float:
@@ -166,17 +167,17 @@ def _analyze_docs(expected_docs: Iterator[str], docs: Iterator[Document]) -> flo
     for expected_doc in expected_docs:
         for doc in docs:
             if expected_doc in doc.metadata['source']:
-                logger.info(f'{expected_doc} - FOUND')
+                logger.app_info(f'{expected_doc} - FOUND')
                 docs_match += 1
                 break
 
     percentage = 100 * docs_match / len(expected_docs) if len(expected_docs) else math.nan
-    logger.info(f'Found docs percent: {percentage:.2f}')
+    logger.app_info(f'Found docs percent: {percentage:.2f}')
     return percentage
 
 
 def _find_document(retriever: BaseRetriever, question: Question) -> Iterator[Document]:
-    logger.info(question.text)
+    logger.app_info(question.text)
 
     try:
         return retriever.invoke(question.text)

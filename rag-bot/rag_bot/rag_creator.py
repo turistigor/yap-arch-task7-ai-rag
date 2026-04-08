@@ -8,7 +8,7 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import BaseChatPromptTemplate, ChatPromptTemplate
+from langchain_core.prompts import BaseChatPromptTemplate, ChatPromptTemplate, FewShotChatMessagePromptTemplate
 from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain_core.vectorstores import VectorStore, VectorStoreRetriever
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -17,9 +17,9 @@ from langchain_ollama import ChatOllama, OllamaEmbeddings
 
 import rag_bot.settings as st
 import rag_bot.consts as consts
+from rag_bot.logs import APP_LOG_LEVEL
 
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -29,11 +29,12 @@ def create_rag_chain(
     llm_data: st.LLMData,
     embeddings_data: st.EmbeddingsModelData,
     retriever_data: st.RetrieverData,
+    mode: str,
 ) -> Runnable:
 
     retriever = create_retriever(kdb_path, vdb_path, embeddings_data, retriever_data)
     llm = _create_llm(llm_data)
-    prompt_template = _create_prompt_template()
+    prompt_template = _create_prompt_template(consts.RagMode(mode))
 
     return (
         {
@@ -71,7 +72,7 @@ def _load_documents(kdb_path: str) -> Iterator[Document]:
             loader = TextLoader(str(file_path), encoding="utf-8")
             documents.extend(loader.load())
 
-    logger.info(f'Downloaded: {len(documents)}')
+    logger.app_info(f'Downloaded: {len(documents)}')
     return documents
 
 
@@ -83,7 +84,7 @@ def _split_documents(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap,
     )
     chunks = splitter.split_documents(documents)
-    logger.info(f'Chunks: {len(chunks)}')
+    logger.app_info(f'Chunks: {len(chunks)}')
 
     return chunks
 
@@ -119,12 +120,14 @@ def _create_embeddings(embeddings_model: str) -> Embeddings:
             model_kwargs={'device': 'cpu'},
             encode_kwargs={'normalize_embeddings': True}
         )
-    elif embeddings_model == consts.MULTILINGUAL_E5_SMALL:
+    elif embeddings_model == consts.MULTILINGUAL_E5_SMALL_IF:
         embeddings = HuggingFaceEmbeddings(
             model_name=embeddings_model,
             model_kwargs={'device': 'cpu'},
             encode_kwargs={'normalize_embeddings': True}
         )
+    elif embeddings_model == consts.MULTILINGUAL_E5_SMALL_QL:
+        embeddings = OllamaEmbeddings(model=embeddings_model)
     elif embeddings_model == consts.BGE_M3:
         embeddings = HuggingFaceEmbeddings(
             model_name=embeddings_model,
@@ -142,7 +145,7 @@ def _create_embeddings(embeddings_model: str) -> Embeddings:
     else:
         raise ValueError(f'{embeddings_model} is not supported')
 
-    logger.info('Embeddings created')
+    logger.app_info('Embeddings created')
     return embeddings
 
 
@@ -157,14 +160,14 @@ def get_vdb(
 
     if os.path.exists(vdb_path) and os.listdir(vdb_path):
         vector_db = _get_vdb_obj(vdb_path, embeddings, vdb_name)
-        logger.info("Existing vector db loaded")
+        logger.app_info("Existing vector db loaded")
     else:
         documents = _load_documents(kdb_path)
         chunks = _split_documents(
             documents, embeddings_data.chunk_size, embeddings_data.chunk_overlap,
         )
         vector_db = _create_vdb(vdb_path, chunks, embeddings, vdb_name)
-        logger.info("Vector db created")
+        logger.app_info("Vector db created")
 
     return vector_db
 
@@ -202,14 +205,22 @@ def _create_llm(llm_data: st.LLMData) -> BaseChatModel:
     )
 
 
-def _create_prompt_template() -> BaseChatPromptTemplate:
-    return ChatPromptTemplate.from_messages([
-        ('system', (
-            'Ты — эксперт по работе с документацией. Твоя задача — отвечать на вопросы, '
-            'используя ТОЛЬКО информацию из предоставленного "Контекста". НЕ используй свои общие знания.\n'
-            'Если в "Контексте" нет точного ответа на вопрос, четко и прямо скажи: "В предоставленных документах нет информации об этом."\n'
-            'НЕ придумывай ответ. Отвечай на русском языке.\n\n'
-            'Контекст: {context}'
-        )),
-        ('human', '{input}'),
-    ])
+def _create_prompt_template(mode: consts.RagMode) -> BaseChatPromptTemplate:
+    if mode == consts.RagMode.MINIMAL:
+        return ChatPromptTemplate.from_messages([
+            ('system', consts.SYSTEM_CONTEXT),
+            ('human', 'Контекст: {context}\n\n Вопрос: {input}'),
+        ])
+    elif mode == consts.RagMode.FEW_SHOT:
+        return ChatPromptTemplate.from_messages([
+            ('system', consts.SYSTEM_CONTEXT),
+            consts.few_shot_template,
+            ('human', 'Контекст: {context}\n\n Вопрос: {input}'),
+        ])
+    elif mode == consts.RagMode.COT:
+        return ChatPromptTemplate.from_messages([
+            ('system', consts.SYSTEM_CONTEXT_COT),
+            ('human', 'Контекст: {context}\n\n Вопрос: {input}'),
+        ])
+
+    raise ValueError(f'RAG mode {mode} is not suupported now.')
