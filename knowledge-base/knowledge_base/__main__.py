@@ -19,6 +19,7 @@ TERMS_PATH = 'terms_map.json'
 class Operations(StrEnum):
     CREATE = auto()
     REPLACE = auto()
+    UPDATE = auto()
     ALL = auto()
 
 
@@ -41,12 +42,12 @@ if __name__ == '__main__':
         create_knowledge_base(
             ARTICLES_LIST_URL_BASE, KNOWLEDGE_BASE_DIR, ARTICLES_SELECTOR,
         )
-    elif  op == Operations.REPLACE:
+    elif op == Operations.REPLACE:
         replacer = Replacer(
             KNOWLEDGE_BASE_DIR, KNOWLEDGE_BASE_CHANGED_DIR, TERMS_PATH
         )
         replacer.replace_terms()
-    elif  op == Operations.ALL:
+    elif op == Operations.ALL:
         create_knowledge_base(
             ARTICLES_LIST_URL_BASE, KNOWLEDGE_BASE_DIR, ARTICLES_SELECTOR,
         )

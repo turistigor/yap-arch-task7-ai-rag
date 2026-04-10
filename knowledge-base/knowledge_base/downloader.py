@@ -1,12 +1,12 @@
 import logging
 import requests
-from typing import Generator, Iterator
+from typing import Generator, Iterable
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def get_articles_sources(base_url: str) -> Iterator[str]:
+def get_articles_sources(base_url: str) -> Iterable[str]:
     articles_urls = _get_articles_urls(base_url)
     for articles_url in articles_urls:
         articles_source_html = _get_articles_sources_html(articles_url)

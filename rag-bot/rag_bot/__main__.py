@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 import rag_bot.settings as st
 import rag_bot.consts as consts
-from rag_bot.actions import create_vdb, launch_bot, test_embeddings, test_rag_bot, test_vdb
+from rag_bot.actions import create_vdb, update_vdb, launch_bot, test_embeddings, test_rag_bot, test_vdb
 from rag_bot.logs import APP_LOG_LEVEL
 
 logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -54,6 +54,7 @@ def get_settings(
 class Operations(StrEnum):
     RUN_BOT=auto()
     CREATE_VDB=auto()
+    UPDATE_VDB=auto()
     TEST_VDB=auto()
     TEST_EMBEDDINGS=auto()
     TEST_RAG_BOT=auto()
@@ -84,6 +85,8 @@ if __name__ == '__main__':
         launch_bot(KDB_PATH, VDB_PATH, llm_data, embeddings_data, retriever_data, rag_mode)
     elif operation == Operations.CREATE_VDB:
         create_vdb(KDB_PATH, VDB_PATH, embeddings_data, retriever_data)
+    elif operation == Operations.UPDATE_VDB:
+        update_vdb(VDB_PATH, KDB_PATH, vdb_name, embeddings_data)
     elif operation == Operations.TEST_VDB:
         test_vdb(KDB_PATH, VDB_PATH, embeddings_data, retriever_data)
     elif operation == Operations.TEST_EMBEDDINGS:

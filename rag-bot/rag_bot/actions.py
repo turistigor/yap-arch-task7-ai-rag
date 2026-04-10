@@ -1,16 +1,15 @@
 import logging
 import os
 from datetime import datetime
-from typing import Optional
 
 from langchain_core.runnables import Runnable
-from langchain_core.vectorstores import VectorStoreRetriever
 
 import rag_bot.settings as st
 import rag_bot.tests as tests
 from rag_bot.logs import APP_LOG_LEVEL
-from rag_bot.rag_creator import create_rag_chain, create_retriever, get_vdb
+from rag_bot.rag_creator import create_embeddings, create_rag_chain, create_retriever, get_vdb, get_vdb_obj
 from rag_bot.rag_bot import run_bot
+from rag_bot.index_updater import update_index
 
 
 logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -62,6 +61,13 @@ def create_vdb(
     elapsed = datetime.now() - start
     logger.app_info(f'Vector db creatred in {(elapsed.total_seconds() / 60):.2f} min')
 
+
+def update_vdb(
+    vdb_path: str, kdb_path: str, vdb_name: str, embeddings_data: st.EmbeddingsModelData,
+):
+    embeddings = create_embeddings(embeddings_data.name)
+    vector_db = get_vdb_obj(vdb_path, embeddings, vdb_name)
+    update_index(vector_db, kdb_path, embeddings_data)
 
 def test_vdb(
     kdb_path: str,

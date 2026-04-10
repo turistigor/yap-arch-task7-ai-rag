@@ -8,21 +8,21 @@
 
 Выполнить команды:
 ```bash
-cd <project_dir>/rag-bot
+cd <project_dir>
 
 # Подготовить виртуальное окружение для запуска
 uv sync
 source .venv/bin/activate
 
 # Настроить переменные среды по образцу (rag-bot/.env.example)
-cp .env.example .env
-# Внести свой hugging-face токен в переменную
+cp rag-bot/.env.example rag-bot/.env
+# Внести свой hugging-face токен в переменную, если без этого не работает
 ```
 
 <details><summary>Про hugging-face токены</summary>
 Можно довольно долго работать без токена (не указывать его в переменной среды HF_TOKEN).
-Но если при запуске (в процессе создания модели эмбеддингов) возникает HTTP 429 (To many requests), то необходимо зарегистрироваться на https://huggingface.co/ и в разделе Settings->Tokens создать его и заполнить переменную HF_TOKEN.
-Для того, чтобы каждый раз не скачивать модель из Интернета, можно установить HF_HUB_OFFLINE=1. В этом случае модель будут искать в локально кэше (~/.cache/huggingface/hub).
+Но если при запуске (в процессе создания модели эмбеддингов) возникает HTTP 429 (To many requests), то необходимо зарегистрироваться на https://huggingface.co/ и в разделе Settings->Tokens создать его и заполнить переменную HF_TOKEN в rag-bot/.env.
+Для того, чтобы модель каждый раз не скачивалась из Интернета установлено HF_HUB_OFFLINE=1. В этом случае модель будут искать в локально кэше (~/.cache/huggingface/hub).
 Но при первом запуске нужно выставить HF_HUB_OFFLINE=0, чтобы модель скачалась.
 </details>
 
@@ -154,4 +154,31 @@ python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b
 
 # все опции 
 python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b all
+```
+
+## Запуск скрипта обновления индекса
+Произвести [начальную настройку](#начальная-настройка).
+
+Выполнить команды:
+```bash
+cd <project_dir>/rag-bot
+
+# Запустить обновление
+python3 -m rag_bot run_bot <embeddings_model> <vector_db>
+# python -m rag_bot update_vdb intfloat/multilingual-e5-small chroma
+```
+
+## Добавление скрипта обновления индекса в cron
+
+Для добавления/удаления записи в crontab можно воспользоваться скриптами из [папки](./rag-bot/scripts/).  
+Необходимо скорректировать запись в crontab внутри [скрипта добавления](./scripts/add_vdb_updater_to_cron.sh).  
+
+```bash
+cd <project_dir>/rag-bot/scripts/
+
+# добавление
+./add_vdb_updater_to_cron.sh
+
+# удаление
+./remove_vdb_updater_from_cron.sh
 ```

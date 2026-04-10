@@ -49,6 +49,20 @@
             ]
         },
         {
+            "name": "update_vdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "update_vdb",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+            ]
+        },
+        {
             "name": "run_bot",
             "type": "debugpy",
             "request": "launch",

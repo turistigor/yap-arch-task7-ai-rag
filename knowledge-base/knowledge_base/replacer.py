@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Iterator
+from typing import Iterable
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class Replacer:
                 with open(kdb_file_path_new, '+w') as kdb_file_new:
                     kdb_file_new.writelines(lines)
 
-    def _replace_terms_in_file(self, file_name: str) -> Iterator[str]:
+    def _replace_terms_in_file(self, file_name: str) -> Iterable[str]:
         lines = []
         kdb_file_path = os.path.join(self._kdb_path, file_name)
 

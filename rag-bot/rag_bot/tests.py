@@ -2,7 +2,7 @@ from datetime import datetime
 import logging
 import math
 from dataclasses import dataclass
-from typing import Iterator, Optional
+from typing import Iterable, Optional
 
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True, kw_only=True, eq=False)
 class Question:
     text: str
-    answer_docs: Optional[Iterator[str]] = None  # наиболее важный для ответа документ
+    answer_docs: Optional[Iterable[str]] = None  # наиболее важный для ответа документ
 
 
 heating_questions = (
@@ -138,7 +138,7 @@ def test_rag_bot(rag_chain: Runnable):
     logger.app_info(f'\nRag bot test duration, min: {elapsed.total_seconds() / 60}')
 
 
-def _ask_questions(rag_chain: Runnable, questions: Iterator[Question]):
+def _ask_questions(rag_chain: Runnable, questions: Iterable[Question]):
     for question in questions:
         logger.app_info(question.text)
 
@@ -150,7 +150,7 @@ def _ask_questions(rag_chain: Runnable, questions: Iterator[Question]):
             logger.app_info(answer)
 
 
-def _find_documents(retriever: BaseRetriever, questions: Iterator[Question]):
+def _find_documents(retriever: BaseRetriever, questions: Iterable[Question]):
     found_percents = []
     for question in questions:
         docs = _find_document(retriever, question)
@@ -162,7 +162,7 @@ def _find_documents(retriever: BaseRetriever, questions: Iterator[Question]):
     logger.app_info(f'Average found percent: {average_percent:.2f}')
 
 
-def _analyze_docs(expected_docs: Iterator[str], docs: Iterator[Document]) -> float:
+def _analyze_docs(expected_docs: Iterable[str], docs: Iterable[Document]) -> float:
     docs_match = 0
     for expected_doc in expected_docs:
         for doc in docs:
@@ -176,7 +176,7 @@ def _analyze_docs(expected_docs: Iterator[str], docs: Iterator[Document]) -> flo
     return percentage
 
 
-def _find_document(retriever: BaseRetriever, question: Question) -> Iterator[Document]:
+def _find_document(retriever: BaseRetriever, question: Question) -> Iterable[Document]:
     logger.app_info(question.text)
 
     try:

@@ -1,6 +1,7 @@
+import hashlib
 import logging
 import os
-from typing import Iterator
+from typing import Iterable
 
 from langchain_community.document_loaders import TextLoader
 from langchain_chroma.vectorstores import Chroma
@@ -75,7 +76,7 @@ def create_retriever(
     )
 
 
-def _load_documents(kdb_path: str) -> Iterator[Document]:
+def _load_documents(kdb_path: str) -> Iterable[Document]:
     documents = []
 
     for _, _, file_names in os.walk(kdb_path):
@@ -89,20 +90,31 @@ def _load_documents(kdb_path: str) -> Iterator[Document]:
     return documents
 
 
-def _split_documents(
-    documents: Iterator[Document], chunk_size: int, chunk_overlap: int,
-) -> Iterator[Document]:
+def split_documents(
+    documents: Iterable[Document], chunk_size: int, chunk_overlap: int,
+) -> Iterable[Document]:
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap,
     )
-    chunks = splitter.split_documents(documents)
-    logger.app_info(f'Chunks: {len(chunks)}')
 
-    return chunks
+    all_chunks = []
+    
+    for doc in documents:
+        file_path = doc.metadata['source']
+        chunks = splitter.split_documents([doc])
+        
+        with open(file_path, 'rb') as f:
+            file_hash = hashlib.md5(f.read()).hexdigest()
+        
+        for chunk in chunks:
+            chunk.metadata['file_hash'] = file_hash
+            all_chunks.append(chunk)
+
+    return all_chunks
 
 
-def _create_embeddings(embeddings_model: str) -> Embeddings:
+def create_embeddings(embeddings_model: str) -> Embeddings:
     if embeddings_model == consts.ALL_MINI_LM_L6_V2:
         embeddings = HuggingFaceEmbeddings(
             model_name=embeddings_model,
@@ -158,7 +170,7 @@ def _create_embeddings(embeddings_model: str) -> Embeddings:
     else:
         raise ValueError(f'{embeddings_model} is not supported')
 
-    logger.app_info('Embeddings created')
+    logger.app_info('Embeddings model initialized')
     return embeddings
 
 
@@ -169,14 +181,14 @@ def get_vdb(
     vdb_name: str,
 ) -> VectorStore:
 
-    embeddings = _create_embeddings(embeddings_data.name)
+    embeddings = create_embeddings(embeddings_data.name)
 
     if os.path.exists(vdb_path) and os.listdir(vdb_path):
-        vector_db = _get_vdb_obj(vdb_path, embeddings, vdb_name)
+        vector_db = get_vdb_obj(vdb_path, embeddings, vdb_name)
         logger.app_info("Existing vector db loaded")
     else:
         documents = _load_documents(kdb_path)
-        chunks = _split_documents(
+        chunks = split_documents(
             documents, embeddings_data.chunk_size, embeddings_data.chunk_overlap,
         )
         vector_db = _create_vdb(vdb_path, chunks, embeddings, vdb_name)
@@ -186,7 +198,7 @@ def get_vdb(
 
 
 def _create_vdb(
-    vdb_path: str, chunks: Iterator[Document], embeddings: Embeddings, vdb_name: str,
+    vdb_path: str, chunks: Iterable[Document], embeddings: Embeddings, vdb_name: str,
 ) -> VectorStore:
     if vdb_name == consts.CHROMA_DB:
         return Chroma.from_documents(
@@ -198,7 +210,7 @@ def _create_vdb(
         raise ValueError(f'{vdb_name} is not supported')
 
 
-def _get_vdb_obj(vdb_path: str, embeddings: Embeddings, vdb_name: str) -> VectorStore:
+def get_vdb_obj(vdb_path: str, embeddings: Embeddings, vdb_name: str) -> VectorStore:
     if vdb_name == consts.CHROMA_DB:
         return Chroma(
             persist_directory=vdb_path,
