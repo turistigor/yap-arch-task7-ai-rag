@@ -9,7 +9,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import BaseChatPromptTemplate, ChatPromptTemplate, FewShotChatMessagePromptTemplate
-from langchain_core.runnables import Runnable, RunnablePassthrough
+from langchain_core.runnables import Runnable, RunnableLambda, RunnablePassthrough
 from langchain_core.vectorstores import VectorStore, VectorStoreRetriever
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -18,6 +18,7 @@ from langchain_ollama import ChatOllama, OllamaEmbeddings
 import rag_bot.settings as st
 import rag_bot.consts as consts
 from rag_bot.logs import APP_LOG_LEVEL
+from rag_bot.security import filter_chunks_before_prompt
 
 logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -36,6 +37,18 @@ def create_rag_chain(
     llm = _create_llm(llm_data)
     prompt_template = _create_prompt_template(consts.RagMode(mode))
 
+    if mode in {consts.RagMode.SECURITY, consts.RagMode.ALL}:
+        return (
+            {
+                "context": retriever,
+                "input": RunnablePassthrough()
+            }
+            | RunnableLambda(filter_chunks_before_prompt)
+            | prompt_template
+            | llm
+            | StrOutputParser()
+        )
+    
     return (
         {
             "context": retriever,
@@ -222,5 +235,16 @@ def _create_prompt_template(mode: consts.RagMode) -> BaseChatPromptTemplate:
             ('system', consts.SYSTEM_CONTEXT_COT),
             ('human', 'Контекст: {context}\n\n Вопрос: {input}'),
         ])
+    elif mode == consts.RagMode.SECURITY:
+        return ChatPromptTemplate.from_messages([
+            ('system', consts.SYSTEM_CONTEXT_SECURE),
+            ('human', 'Контекст: {context}\n\n Вопрос: {input}'),
+        ])
+    elif mode == consts.RagMode.ALL:
+        return ChatPromptTemplate.from_messages([
+            ('system', consts.SYSTEM_CONTEXT_FULL),
+            consts.few_shot_template,
+            ('human', 'Контекст: {context}\n\n Вопрос: {input}'),
+        ])
 
-    raise ValueError(f'RAG mode {mode} is not suupported now.')
+    raise ValueError(f'RAG mode {mode} is not supported now.')

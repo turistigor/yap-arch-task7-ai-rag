@@ -4,6 +4,7 @@ from getpass import getuser
 from langchain_core.runnables import Runnable
 
 from rag_bot.logs import APP_LOG_LEVEL
+from rag_bot.security import is_secure, RagSecurityError
 
 logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -18,6 +19,15 @@ WELCOME_STR = \
     f'Меня зовут {BOT_NAME} ({BOT_NAME_FULL} 🤖), я - эксперт по марафонскому бегу.\n' \
     f'Готов ответить на твои вопросы по бегу и смежным дисциплинам.🏃🏊🚴'
 
+INSECURE_MESSAGE = (
+    'Кажется это не спортивный запрос! Он выглядит подозрительным. 🕵️\n'
+    'К сожалению я не могу на него ответить...'
+)
+
+ACCESS_FORBIDDEN_MESSAGE = (
+    'К сожалению я не могу ответить на это вопрос по соображениям конфиденциальности. 👮‍♂️\n'
+)
+
 
 def run_bot(rag_chain: Runnable):
     print(WELCOME_STR)
@@ -29,11 +39,17 @@ def run_bot(rag_chain: Runnable):
         if _is_exit(input_str.lower()):
             exit(0)
 
+        if not is_secure(input_str):
+            print(f'\n{BOT_NAME}:\n{INSECURE_MESSAGE}')
+            continue
+
         if not input_str:
             continue
 
         try:
             answer = rag_chain.invoke(input_str)
+        except RagSecurityError as ex:
+            print(f'\n{BOT_NAME}:\n{ACCESS_FORBIDDEN_MESSAGE}')
         except Exception as ex:
             logger.error(ex)
             exit(0)
@@ -42,4 +58,4 @@ def run_bot(rag_chain: Runnable):
 
 
 def _is_exit(input_str: str) -> bool:
-    return input_str in ('q', 'quit', 'exit')
+    return input_str in {'q', 'quit', 'exit'}

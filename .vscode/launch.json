@@ -46,11 +46,7 @@
                 "create_vdb",
                 "intfloat/multilingual-e5-small",
                 "chroma",
-            ],
-            "env": {
-                "HF_TOKEN": "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",
-                "HF_HUB_OFFLINE": "1"
-            }
+            ]
         },
         {
             "name": "run_bot",
@@ -64,15 +60,15 @@
                 "run_bot",
                 "intfloat/multilingual-e5-small",
                 "chroma",
+
                 "gemma4:e2b",
+                //"qwen2.5:7b",
+
                 // "minimal",
                 // "few_shot"
-                "cot"
-            ],
-            "env": {
-                "HF_TOKEN": "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",
-                "HF_HUB_OFFLINE": "1"
-            }
+                //"cot"
+                "all"
+            ]
         },
         {
             "name": "test_vdb",
@@ -86,14 +82,10 @@
                 "test_vdb",
                 "intfloat/multilingual-e5-small",
                 "chroma",
-            ],
-            "env": {
-                "HF_TOKEN": "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",
-                "HF_HUB_OFFLINE": "1"
-            }
+            ]
         },
         {
-            "name": "test embs",
+            "name": "test_embs",
             "type": "debugpy",
             "request": "launch",
             "module": "rag_bot",
@@ -104,15 +96,11 @@
                 "test_embeddings",
                 "intfloat/multilingual-e5-small",
                 "chroma",
-                "qwen2.5:3b"
-            ],
-            "env": {
-                "HF_TOKEN": "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",
-                "HF_HUB_OFFLINE": "1"
-            }
+                "gemma4:e2b",
+            ]
         },
         {
-            "name": "test rag bot",
+            "name": "test_rag_bot",
             "type": "debugpy",
             "request": "launch",
             "module": "rag_bot",
@@ -123,12 +111,8 @@
                 "test_rag_bot", 
                 "intfloat/multilingual-e5-small",
                 "chroma",
-                "qwen2.5:3b"
-            ],
-            "env": {
-                "HF_TOKEN": "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",
-                "HF_HUB_OFFLINE": "1"
-            }
+                "gemma4:e2b",
+            ]
         }
     ]
 }

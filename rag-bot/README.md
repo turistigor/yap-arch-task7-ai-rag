@@ -21,7 +21,7 @@ cp .env.example .env
 
 <details><summary>Про hugging-face токены</summary>
 Можно довольно долго работать без токена (не указывать его в переменной среды HF_TOKEN).
-Но если при запуске (в процессе создания модели эмбеддингов) возникает HTTP 429 (To many requests), то необходимо зарегистроваться на https://huggingface.co/ и в разделе Settings->Tokens создать его и заполнить переменную HF_TOKEN.
+Но если при запуске (в процессе создания модели эмбеддингов) возникает HTTP 429 (To many requests), то необходимо зарегистрироваться на https://huggingface.co/ и в разделе Settings->Tokens создать его и заполнить переменную HF_TOKEN.
 Для того, чтобы каждый раз не скачивать модель из Интернета, можно установить HF_HUB_OFFLINE=1. В этом случае модель будут искать в локально кэше (~/.cache/huggingface/hub).
 Но при первом запуске нужно выставить HF_HUB_OFFLINE=0, чтобы модель скачалась.
 </details>
@@ -46,7 +46,7 @@ python3 -m rag_bot create_vdb <embeddings_model> <vector_db>
 
 В результате выполнения в корне проекта появится папка vdb с векторным индексом.
 
-## Тестирвоание индекса векторной БД
+## Тестирование индекса векторной БД
 
 Произвести [начальную настройку](#начальная-настройка).  
 
@@ -61,7 +61,7 @@ python3 -m rag_bot test_vdb <embeddings_model> <vector_db>
 
 Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
 
-## Тестирования моделей эмбеддингнов
+## Тестирования моделей эмбеддингов
 
 Произвести [начальную настройку](#начальная-настройка).
 
@@ -74,7 +74,7 @@ rm -rf <project_dir>/vdb
 
 # Запустить тест
 python3 -m rag_bot test_embeddings <embeddings_model> <vector_db> <llm>
-# python3 -m rag_bot test_embeddings intfloat/multilingual-e5-small chroma qwen2.5:3b
+# python3 -m rag_bot test_embeddings intfloat/multilingual-e5-small chroma gemma4:e2b
 ```
 
 Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
@@ -111,7 +111,7 @@ source .venv/bin/activate
 
 # Запустить тест
 python3 -m rag_bot test_rag_bot <embeddings_model> <vector_db> <llm>
-# python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma qwen2.5:3b
+# python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b
 ```
 
 Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
@@ -136,11 +136,22 @@ source .venv/bin/activate
 
 # Запустить тест
 python3 -m rag_bot run_bot <embeddings_model> <vector_db> <llm> <rag_mode>
-# python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma qwen2.5:3b minimal
+# python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b minimal
 ```
-rag_mode - режим RAG-пайплалайны. Сейчас предусмотрены:
-- minimal - отсутствуют техники промптинга
-- few_shot - добавление примеров (Few-Shot)
-- cot - вывод рассуждений бота (Chain-of-Thought)
+rag_mode - режим RAG-пайплайна. Сейчас предусмотрены:
+- minimal - отсутствуют техники промптинга;
+- few_shot - добавление примеров (Few-Shot);
+- cot - вывод рассуждений бота (Chain-of-Thought).
 
 Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
+
+## Запуск бота c включенной защитой
+
+Производится так же как обычный [запуск](#запуск-бота), лишь режим должен быть security (добавить проверки безопасности) или all (включить все опции сразу).
+```bash
+# проверки безопасности
+python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b security
+
+# все опции 
+python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b all
+```
