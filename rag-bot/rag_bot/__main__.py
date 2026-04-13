@@ -75,8 +75,8 @@ if __name__ == '__main__':
 
         embeddings_model = sys.argv[2] if argc >= 3 else consts.MULTILINGUAL_E5_SMALL
         vdb_name = sys.argv[3] if argc >= 4 else consts.CHROMA_DB
-        llm_name = sys.argv[4] if argc >= 5 else consts.QWEN_2_5_3B
-        rag_mode = sys.argv[5] if argc >= 6 else consts.RagMode
+        llm_name = sys.argv[4] if argc >= 5 else consts.GEMMA_4_E2B
+        rag_mode = sys.argv[5] if argc >= 6 else consts.RagMode.ALL
 
     os.makedirs(VDB_PATH, exist_ok=True)
     llm_data, embeddings_data, retriever_data = get_settings(embeddings_model, vdb_name, llm_name)
@@ -92,6 +92,6 @@ if __name__ == '__main__':
     elif operation == Operations.TEST_EMBEDDINGS:
         test_embeddings(KDB_PATH, VDB_PATH, embeddings_data, retriever_data)
     elif operation == Operations.TEST_RAG_BOT:
-        test_rag_bot(KDB_PATH, VDB_PATH, llm_data, embeddings_data, retriever_data, rag_mode)
+        test_rag_bot(KDB_PATH, VDB_PATH, llm_data, embeddings_data, retriever_data, consts.RagMode.MINIMAL)
     else:
         logger.error('Input operation code')

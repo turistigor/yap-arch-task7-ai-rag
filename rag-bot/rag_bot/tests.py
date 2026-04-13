@@ -1,102 +1,42 @@
-from datetime import datetime
-import logging
 import math
-from dataclasses import dataclass
-from typing import Iterable, Optional
+from dataclasses import dataclass, field
+from datetime import datetime
+import os
+from typing import Iterable
 
+from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import Runnable
+from sentence_transformers import SentenceTransformer, util
 
-from rag_bot.logs import APP_LOG_LEVEL
 
-logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+from rag_bot.logs import setup_file_and_stdout_logs
+from rag_bot.golden_questions import (
+    Question, complex_questions, simple_questions, heating_questions,
+    unanswered_questions,
+)
+from rag_bot.rag_creator import create_embeddings
 
+now = datetime.now().strftime('%Y_%m_%d-%H:%M:%S')
+FULL_LOG_PATH = f'./logs/{now}-test_rag_bot.log'
+FILTER_FLAG_NAME = 'rag_test'
+logger = setup_file_and_stdout_logs(
+    __name__, FULL_LOG_PATH, FILTER_FLAG_NAME, is_file_jsonl=True,
+)
 
 @dataclass(frozen=True, kw_only=True, eq=False)
-class Question:
-    text: str
-    answer_docs: Optional[Iterable[str]] = None  # наиболее важный для ответа документ
+class AnswerMetrics:
+    sem_sim: float         # semantic similarity: cosine_similarity -> [0 - 1.0], 0 - different, 1 - equal
+    retrieval_rate: float  # percent of the found chunks in golden chunks -> [0 - 1.0], 0 - np one, 1 - all
+    len_diff: float        # length difference: abs(len_difference) / len(golden answer) -> [0 - math.inf]
+    found_docs: set[str] = field(default_factory=set)
 
 
-heating_questions = (
-    Question(
-        text='Какова длина марафона?',
-        answer_docs=(),
-    ),
-)
-
-simple_questions = (
-    Question(
-        text='Что такое дергунчик?',
-        answer_docs=(
-            'Что_такое_дергунчик_и_как_его_бегать.txt',
-            'Зачем_бегать_интервалы_при_подготовке_к_марафону.txt',
-        )
-    ),
-    Question(
-        text='Что такое тыгыдык?',
-        answer_docs=(
-            'Тыгыдык_при_беге:_каким_он_должен_быть_и_как_его_тренировать.txt',
-        )
-    ),
-    Question(
-        text='Что такое туки-тук?',
-        answer_docs=(
-            'Пульсовые_зоны:_на_каком_пульсе_бегать.txt',
-        )
-    ),
-    Question(
-        text='Что такое туки-тук макс?',
-        answer_docs=(
-            'Пульсовые_зоны:_на_каком_пульсе_бегать.txt',
-        )
-    ),
-    Question(
-        text='Что представляет собой тест Медякова?',
-        answer_docs=(
-            'Тест_Медякова_для_аэробных_видов_спорта:_бег,_плавание,_велосипед.txt',
-        )
-    ),
-)
-
-complex_questions = (
-    Question(
-        text='Чем дергунчик отличается от интервалов?',
-        answer_docs=(
-            'Что_такое_дергунчик_и_как_его_бегать.txt',
-            'Зачем_бегать_интервалы_при_подготовке_к_марафону.txt',
-            '5_интервальных_беговых_тренировок_для_новичков.txt',
-        ),
-    ),
-    Question(
-        text='Каким должен быть оптимальный тыгыдык?',
-        answer_docs=(
-            'Тыгыдык_при_беге:_каким_он_должен_быть_и_как_его_тренировать.txt',
-            'Техника_бега_на_длинные_дистанции:_5_основных_правил.txt',
-            'Как_пробежать_первый_полумарафон?_12_простых_шагов.txt'
-        ),
-    ),
-    Question(
-        text='Что использовать для измерения туки-тук?',
-        answer_docs=(
-            '«Ваш_первый_марафон»:_8_ключевых_идей_книги_Грете_Вайтц.txt',
-        ),
-    ),
-    Question(
-        text='Для чего используется туки-тук макс?',
-        answer_docs=(
-            'Как_рассчитать_максимальный_пульс_(туки-тук макс).txt',
-            'Пульсовые_зоны:_на_каком_пульсе_бегать.txt',
-        ),
-    ),
-    Question(
-        text='Перечисли разновидности теста Медякова?',
-        answer_docs=(
-            'Тест_Медякова_для_аэробных_видов_спорта:_бег,_плавание,_велосипед.txt',
-        ),
-    ),
+THRESHOLDS = AnswerMetrics(
+    sem_sim=0.7,
+    len_diff=0.6,
+    retrieval_rate=0.4,
 )
 
 
@@ -121,33 +61,170 @@ def test_retriever(retriever: BaseRetriever):
 
 
 def test_rag_bot(rag_chain: Runnable):
+    sim_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+
     logger.app_info('Heating questions:')
-    _ask_questions(rag_chain, heating_questions)
+    _ask_questions(rag_chain, heating_questions, sim_model)
 
-    logger.app_info('Retriever test started...\n')
+    logger.app_info('Retriever test started...\n', )
 
+    result_map = {}
     start = datetime.now()
 
     logger.app_info('Simple questions:')
-    _ask_questions(rag_chain, simple_questions)
+    result = _ask_questions(rag_chain, simple_questions, sim_model)
+    result_map.update(result)
 
     logger.app_info('Complex questions:')
-    _ask_questions(rag_chain, complex_questions)
+    result = _ask_questions(rag_chain, complex_questions, sim_model)
+    result_map.update(result)
+
+    logger.app_info('Unanswered questions:')
+    result = _ask_questions(rag_chain, unanswered_questions, sim_model)
+    result_map.update(result)
 
     elapsed = datetime.now() - start
-    logger.app_info(f'\nRag bot test duration, min: {elapsed.total_seconds() / 60}')
+    logger.app_info(f'Rag bot test duration, min: {(elapsed.total_seconds() / 60):.2f}')
+    logger.app_info(_get_test_summary(result_map))
 
 
-def _ask_questions(rag_chain: Runnable, questions: Iterable[Question]):
+def _get_test_summary(result_map: dict[str, bool]) -> str:
+    result_str = 'Test summary:\n'
+    for question, good_answer in result_map.items():
+        result_str += f'\t{question}: {'OK' if good_answer else 'NOT OK'}\n'
+    return result_str
+
+
+class RagChainMetricsCollector(BaseCallbackHandler):
+    def __init__(self):
+        self.retrieved_chunks = []
+    
+    def on_retriever_end(self, retrieved_chunks, **kwargs):
+        self.retrieved_chunks = retrieved_chunks
+
+
+def _ask_questions(
+    rag_chain: Runnable, questions: Iterable[Question], sim_model: SentenceTransformer,
+) -> dict[str, bool]:
+    
+    result = {}
     for question in questions:
         logger.app_info(question.text)
+        collector = RagChainMetricsCollector()
 
         try:
-            answer = rag_chain.invoke(question.text)
+            answer = rag_chain.invoke(
+                question.text, config={"callbacks": [collector,]}
+            )
         except Exception as ex:
             logger.error(ex)
         else:
             logger.app_info(answer)
+
+        metrics = _check_answer(
+            question, answer, sim_model, collector.retrieved_chunks,
+        )
+        is_good = _is_answer_good(metrics)
+
+        msg, extra = _get_question_test_results(question.text, answer, metrics, is_good)
+        logger.app_info(msg, extra=extra)
+
+        result[question.text] = is_good
+
+    return result
+
+
+def _get_question_test_results(
+    question: str,
+    answer: str,
+    metrics: AnswerMetrics,
+    answer_is_good: bool,
+) -> tuple[str, dict]:
+
+    result_str = (
+        f'Metrics: \n'
+        f'\tsemantic similarity: {metrics.sem_sim:.2f} (≥{THRESHOLDS.sem_sim:.2f})\n'
+        f'\tlength difference  : {metrics.len_diff:.2f} (≤{THRESHOLDS.len_diff:.2f})\n'
+        f'\tretrieval rate     : {metrics.retrieval_rate:.2f} (≥{THRESHOLDS.retrieval_rate:.2f})\n'
+        f'\tTotal              : {"OK" if answer_is_good is True else "NOT OK"}'
+    )
+
+    result_dict={
+        FILTER_FLAG_NAME: True,
+        'question': question,
+        'answer': answer,
+        'answer_is_good': answer_is_good,
+        'semantic_similarity': f'{metrics.sem_sim:.2f}',
+        'length_difference': f'{metrics.len_diff:.2f}',
+        'retrieval_rate': f'{metrics.retrieval_rate:.2f}',
+        'found_documents': ', '.join(metrics.found_docs),
+    }
+
+    return result_str, result_dict
+
+
+def _is_answer_good(metrics: AnswerMetrics) -> bool:
+    return (
+        metrics.sem_sim >= THRESHOLDS.sem_sim and 
+        metrics.len_diff <= THRESHOLDS.len_diff and
+        metrics.retrieval_rate >= THRESHOLDS.retrieval_rate
+    )
+
+
+def _calc_cosine_similarity(
+    expected_answer: str, answer: str, sim_model: SentenceTransformer,
+) -> float:
+    emb_expected = sim_model.encode(expected_answer, convert_to_tensor=True)
+    emb_answer = sim_model.encode(answer, convert_to_tensor=True)
+    similarity = util.cos_sim(emb_expected, emb_answer)
+
+    return similarity.item()
+
+
+def _calc_len_diff(expected_answer: str, answer: str) -> float:
+    exp_len = len(expected_answer)
+    real_len = len(answer)
+
+    return abs(1 - real_len / exp_len)
+
+
+def _calc_retrieval_rate(
+    expected_chunks: set[str], found_chunks: Iterable[Document],
+) -> tuple[float, set[str]]:
+    
+    if not expected_chunks:
+        return 1, set()
+
+    docs_match = 0
+    found_docs = set()
+
+    for chunk in found_chunks:
+        chunk_doc = os.path.basename(chunk.metadata['source'])
+        if chunk_doc in expected_chunks:
+            found_docs.add(chunk_doc)
+            docs_match += 1
+
+    rate = docs_match / len(found_chunks) if len(found_chunks) else 0
+
+    return rate, found_docs
+
+
+def _check_answer(
+    question: Question,
+    answer: str,
+    sim_model: SentenceTransformer,
+    found_chunks: Iterable[Document],
+) -> AnswerMetrics:
+    sem_sim = _calc_cosine_similarity(question.answer, answer, sim_model)
+    len_diff = _calc_len_diff(question.answer, answer)
+    retrieval_rate, found_docs = _calc_retrieval_rate(question.answer_docs, found_chunks)
+
+    return AnswerMetrics(
+        sem_sim=sem_sim,
+        len_diff=len_diff,
+        retrieval_rate=retrieval_rate,
+        found_docs=found_docs,
+    )
 
 
 def _find_documents(retriever: BaseRetriever, questions: Iterable[Question]):

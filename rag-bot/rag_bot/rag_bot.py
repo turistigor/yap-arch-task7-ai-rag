@@ -3,10 +3,8 @@ from getpass import getuser
 
 from langchain_core.runnables import Runnable
 
-from rag_bot.logs import APP_LOG_LEVEL
 from rag_bot.security import is_secure, RagSecurityError
 
-logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 BOT_NAME = 'БеБо'

@@ -97,17 +97,13 @@ VDB creation time, min: 0.10293240000000001
 2026-04-07 12:28:44,431 - INFO - Average found percent: 70.00
 ```
 
-## Тестирование LLM
+## Тестирование бота
 
 Произвести [начальную настройку](#начальная-настройка).
 
 Выполнить команды:
 ```bash
 cd <project_dir>/rag-bot
-
-# Подготовить виртуальное окружение для запуска
-uv sync
-source .venv/bin/activate
 
 # Запустить тест
 python3 -m rag_bot test_rag_bot <embeddings_model> <vector_db> <llm>
@@ -116,10 +112,6 @@ python3 -m rag_bot test_rag_bot <embeddings_model> <vector_db> <llm>
 
 Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
 Список поддерживаемых LLM можно найти в [файле](./rag_bot/consts/llms.py).
-
-Анализ результатов производится на основе консольных логов:
-1. Среднее время выполнения было рассчитано вручную.
-2. Качество ответов было проанализировано вручную.
 
 
 ## Запуск бота
@@ -130,13 +122,9 @@ python3 -m rag_bot test_rag_bot <embeddings_model> <vector_db> <llm>
 ```bash
 cd <project_dir>/rag-bot
 
-# Подготовить виртуальное окружение для запуска
-uv sync
-source .venv/bin/activate
-
 # Запустить тест
 python3 -m rag_bot run_bot <embeddings_model> <vector_db> <llm> <rag_mode>
-# python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b minimal
+# python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b minimal
 ```
 rag_mode - режим RAG-пайплайна. Сейчас предусмотрены:
 - minimal - отсутствуют техники промптинга;
@@ -150,10 +138,10 @@ rag_mode - режим RAG-пайплайна. Сейчас предусмотр�
 Производится так же как обычный [запуск](#запуск-бота), лишь режим должен быть security (добавить проверки безопасности) или all (включить все опции сразу).
 ```bash
 # проверки безопасности
-python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b security
+python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b security
 
 # все опции 
-python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b all
+python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b all
 ```
 
 ## Запуск скрипта обновления индекса

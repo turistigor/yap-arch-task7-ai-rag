@@ -3,7 +3,6 @@ import logging
 import os
 from typing import Iterable
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 

@@ -6,13 +6,11 @@ from langchain_core.runnables import Runnable
 
 import rag_bot.settings as st
 import rag_bot.tests as tests
-from rag_bot.logs import APP_LOG_LEVEL
 from rag_bot.rag_creator import create_embeddings, create_rag_chain, create_retriever, get_vdb, get_vdb_obj
 from rag_bot.rag_bot import run_bot
 from rag_bot.index_updater import update_index
 
 
-logging.basicConfig(level=APP_LOG_LEVEL, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -121,4 +119,4 @@ def test_rag_bot(
         mode=rag_mode,
     )
 
-    test_rag_bot(rag_chain)
+    tests.test_rag_bot(rag_chain)

@@ -125,7 +125,7 @@
                 "test_rag_bot", 
                 "intfloat/multilingual-e5-small",
                 "chroma",
-                "gemma4:e2b",
+                "gemma4:e2b"
             ]
         }
     ]

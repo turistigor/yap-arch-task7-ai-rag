@@ -1,10 +1,7 @@
 from dataclasses import dataclass
 import hashlib
 import os
-import sys
 from pathlib import Path
-from logging import basicConfig, INFO, getLogger, StreamHandler
-from logging.handlers import RotatingFileHandler
 from typing import Iterable
 
 from langchain_chroma import Chroma
@@ -13,32 +10,20 @@ from langchain_community.document_loaders import TextLoader
 
 import rag_bot.settings as st
 from rag_bot.rag_creator import split_documents
-from rag_bot.logs import APP_LOG_LEVEL
+from rag_bot.logs import setup_file_and_stdout_logs
 
-LOG_DIR = './logs'
-os.makedirs(LOG_DIR, exist_ok=True)
-LOG_FILE_NAME = 'index_updater.log'
-FULL_LOG_PATH = Path(LOG_DIR) / LOG_FILE_NAME
+FULL_LOG_PATH = './logs/index_updater.log'
+logger = setup_file_and_stdout_logs(__name__, FULL_LOG_PATH)
 
 UPDATE_BATCH_SIZE = 5000
-
-basicConfig(
-    level=APP_LOG_LEVEL,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        StreamHandler(sys.stdout),
-        RotatingFileHandler(FULL_LOG_PATH, maxBytes=1_000_000, encoding='utf-8')
-    ],
-    force=True
-)
-logger = getLogger(__name__)
+SOURCELESS_CHUNK = f'Chunk without source found'
 
 
-def update_index(vector_db: Chroma, kdb_path: str, embeddings_data: st.EmbeddingsModelData):
+def update_index(
+    vector_db: Chroma, kdb_path: str, embeddings_data: st.EmbeddingsModelData,
+):
     updater = ChromaFileSync(vector_db, kdb_path)
     updater.sync(embeddings_data.chunk_size, embeddings_data.chunk_overlap)
-
-SOURCELESS_CHUNK = f'Chunk without source found'
 
 @dataclass(frozen=True, kw_only=True, eq=False)
 class UpdaterStat:
