@@ -1,18 +1,20 @@
 # Подготовка базы знаний
 
-В качестве исходной базы знаний мною была взята подборка статей категории ["Бег - Тренировки"](https://marathonec.ru/topics/running/training/)
+В качестве исходной базы знаний была взята подборка статей категории ["Бег - Тренировки"](https://marathonec.ru/topics/running/training/)
 с сайта https://marathonec.ru.
 
-Для выкачивания написан [python-модуль](knowledge_base/__main__.py).  
+Для выкачивания написан [скрипт](knowledge_base/__main__.py).  
 Для запуска необходимо проделать следующие шаги:
 1. Установить:
     - [python >= 3.12](https://www.python.org/downloads/)
     - [пакетный менеджер uv](https://docs.astral.sh/uv/getting-started/installation/)
 2. Выполнить команды:
     ```bash
-    cd <project_dir>/knowledge-base
+    cd <project_dir>
     uv sync
     source .venv/bin/activate
+
+    cd <project_dir>/knowledge-base
     python3 -m knowledge_base all
     ```
 3. Результаты будут в папках:

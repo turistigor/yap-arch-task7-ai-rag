@@ -42,7 +42,7 @@ THRESHOLDS = AnswerMetrics(
 
 def test_vdb(retriever: BaseRetriever):
     logger.app_info('Vector db index test question')
-    docs = _find_document(retriever, heating_questions[0])
+    docs = _find_question_documents(retriever, heating_questions[0])
     for doc in docs:
         print('\nFound chunk:')
         print(f'{doc.id=}')
@@ -113,17 +113,13 @@ def _ask_questions(
         collector = RagChainMetricsCollector()
 
         try:
-            answer = rag_chain.invoke(
-                question.text, config={"callbacks": [collector,]}
-            )
+            answer = rag_chain.invoke(question.text, config={"callbacks": [collector,]})
         except Exception as ex:
             logger.error(ex)
         else:
             logger.app_info(answer)
 
-        metrics = _check_answer(
-            question, answer, sim_model, collector.retrieved_chunks,
-        )
+        metrics = _check_answer(question, answer, sim_model, collector.retrieved_chunks)
         is_good = _is_answer_good(metrics)
 
         msg, extra = _get_question_test_results(question.text, answer, metrics, is_good)
@@ -189,9 +185,12 @@ def _calc_len_diff(expected_answer: str, answer: str) -> float:
 
 
 def _calc_retrieval_rate(
-    expected_chunks: set[str], found_chunks: Iterable[Document],
+    expected_chunks: set[str], found_chunks: Iterable[Document] | None,
 ) -> tuple[float, set[str]]:
     
+    if not found_chunks:
+        return 0, set()
+
     if not expected_chunks:
         return 1, set()
 
@@ -230,30 +229,20 @@ def _check_answer(
 def _find_documents(retriever: BaseRetriever, questions: Iterable[Question]):
     found_percents = []
     for question in questions:
-        docs = _find_document(retriever, question)
-        found_percent = _analyze_docs(question.answer_docs, docs)
-        found_percents.append(found_percent)
+        docs = _find_question_documents(retriever, question)
+        found_percent, found_docs = _calc_retrieval_rate(question.answer_docs, docs)
+        for doc in found_docs:
+            logger.app_info(f'{doc} - FOUND')
+        logger.app_info(f'Found docs percent: {100 * found_percent:.2f}')
+
+        found_percents.append(100 * found_percent)
         print('\n')
-    
+
     average_percent = sum(found_percents) / len(found_percents)
     logger.app_info(f'Average found percent: {average_percent:.2f}')
 
 
-def _analyze_docs(expected_docs: Iterable[str], docs: Iterable[Document]) -> float:
-    docs_match = 0
-    for expected_doc in expected_docs:
-        for doc in docs:
-            if expected_doc in doc.metadata['source']:
-                logger.app_info(f'{expected_doc} - FOUND')
-                docs_match += 1
-                break
-
-    percentage = 100 * docs_match / len(expected_docs) if len(expected_docs) else math.nan
-    logger.app_info(f'Found docs percent: {percentage:.2f}')
-    return percentage
-
-
-def _find_document(retriever: BaseRetriever, question: Question) -> Iterable[Document]:
+def _find_question_documents(retriever: BaseRetriever, question: Question) -> Iterable[Document]:
     logger.app_info(question.text)
 
     try:

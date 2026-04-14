@@ -99,7 +99,7 @@
             ]
         },
         {
-            "name": "test_embs",
+            "name": "test_embeddings",
             "type": "debugpy",
             "request": "launch",
             "module": "rag_bot",

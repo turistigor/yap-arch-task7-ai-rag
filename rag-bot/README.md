@@ -16,7 +16,7 @@ source .venv/bin/activate
 
 # Настроить переменные среды по образцу (rag-bot/.env.example)
 cp rag-bot/.env.example rag-bot/.env
-# Внести свой hugging-face токен в переменную, если без этого не работает
+# Внести свой hugging-face токен в переменную HF_TOKEN, если без этого не работает
 ```
 
 <details><summary>Про hugging-face токены</summary>
@@ -32,17 +32,17 @@ cp rag-bot/.env.example rag-bot/.env
 
 Выполнить команды:
 ```bash
-cd <project_dir>/rag-bot
-
 # Удалить ранее созданную БД (если есть)
 rm -rf <project_dir>/vdb
 
+cd <project_dir>/rag-bot
+
 # Запустить тест
 python3 -m rag_bot create_vdb <embeddings_model> <vector_db>
-# python3 -m rag_bot test_embeddings intfloat/multilingual-e5-small chroma
+# python3 -m rag_bot create_vdb intfloat/multilingual-e5-small chroma
 ```
 
-Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
+Также доступна преднастроенная конфигурация запуска в vscode [create_vdb](../.vscode/launch.json).  
 
 В результате выполнения в корне проекта появится папка vdb с векторным индексом.
 
@@ -56,12 +56,12 @@ cd <project_dir>/rag-bot
 
 # Запустить тест
 python3 -m rag_bot test_vdb <embeddings_model> <vector_db>
-# python3 -m rag_bot test_embeddings intfloat/multilingual-e5-small chroma
+# python3 -m rag_bot test_vdb intfloat/multilingual-e5-small chroma
 ```
 
-Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
+Также доступны преднастроенные конфигурации запуска в vscode [test_vdb](../.vscode/launch.json).  
 
-## Тестирования моделей эмбеддингов
+## Тестирование моделей эмбеддингов
 
 Произвести [начальную настройку](#начальная-настройка).
 
@@ -77,7 +77,7 @@ python3 -m rag_bot test_embeddings <embeddings_model> <vector_db> <llm>
 # python3 -m rag_bot test_embeddings intfloat/multilingual-e5-small chroma gemma4:e2b
 ```
 
-Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
+Также доступны преднастроенные конфигурации запуска в vscode [test_embeddings](../.vscode/launch.json).  
 Список поддерживаемых моделей эмбеддингов можно найти в [файле](./rag_bot/consts/embeddings.py).
 
 Анализ результатов производится на основе консольных логов.
@@ -110,7 +110,7 @@ python3 -m rag_bot test_rag_bot <embeddings_model> <vector_db> <llm>
 # python3 -m rag_bot test_rag_bot intfloat/multilingual-e5-small chroma gemma4:e2b
 ```
 
-Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
+Также доступны преднастроенные конфигурации запуска в vscode [test_rag_bot](../.vscode/launch.json).  
 Список поддерживаемых LLM можно найти в [файле](./rag_bot/consts/llms.py).
 
 
@@ -126,22 +126,24 @@ cd <project_dir>/rag-bot
 python3 -m rag_bot run_bot <embeddings_model> <vector_db> <llm> <rag_mode>
 # python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b minimal
 ```
-rag_mode - режим RAG-пайплайна. Сейчас предусмотрены:
+rag_mode - режим RAG-пайплайна. Актуальные для текущего раздела варианты:
 - minimal - отсутствуют техники промптинга;
 - few_shot - добавление примеров (Few-Shot);
 - cot - вывод рассуждений бота (Chain-of-Thought).
 
-Также доступны преднастроенные конфигурации запуска в [vscode](../.vscode/launch.json).  
+Также доступны преднастроенные конфигурации запуска в vscode [run_bot](../.vscode/launch.json).  
 
 ## Запуск бота c включенной защитой
 
 Производится так же как обычный [запуск](#запуск-бота), лишь режим должен быть security (добавить проверки безопасности) или all (включить все опции сразу).
 ```bash
+python3 -m rag_bot run_bot <embeddings_model> <vector_db> <llm> <rag_mode>
+
 # проверки безопасности
-python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b security
+# python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b security
 
 # все опции 
-python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b all
+# python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b all
 ```
 
 ## Запуск скрипта обновления индекса
@@ -152,7 +154,7 @@ python3 -m rag_bot run_bot intfloat/multilingual-e5-small chroma gemma4:e2b all
 cd <project_dir>/rag-bot
 
 # Запустить обновление
-python3 -m rag_bot run_bot <embeddings_model> <vector_db>
+python3 -m rag_bot update_vdb <embeddings_model> <vector_db>
 # python -m rag_bot update_vdb intfloat/multilingual-e5-small chroma
 ```
 

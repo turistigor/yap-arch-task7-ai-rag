@@ -3,6 +3,7 @@ from getpass import getuser
 
 from langchain_core.runnables import Runnable
 
+import rag_bot.consts as consts
 from rag_bot.security import is_secure, RagSecurityError
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ ACCESS_FORBIDDEN_MESSAGE = (
 )
 
 
-def run_bot(rag_chain: Runnable):
+def run_bot(rag_chain: Runnable, rag_mode: consts.RagMode):
     print(WELCOME_STR)
 
     while True:
@@ -37,9 +38,10 @@ def run_bot(rag_chain: Runnable):
         if _is_exit(input_str.lower()):
             exit(0)
 
-        if not is_secure(input_str):
-            print(f'\n{BOT_NAME}:\n{INSECURE_MESSAGE}')
-            continue
+        if rag_mode in {consts.RagMode.SECURITY, consts.RagMode.ALL}:
+            if not is_secure(input_str):
+                print(f'\n{BOT_NAME}:\n{INSECURE_MESSAGE}')
+                continue
 
         if not input_str:
             continue

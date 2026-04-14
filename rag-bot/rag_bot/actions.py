@@ -6,6 +6,7 @@ from langchain_core.runnables import Runnable
 
 import rag_bot.settings as st
 import rag_bot.tests as tests
+import rag_bot.consts as consts
 from rag_bot.rag_creator import create_embeddings, create_rag_chain, create_retriever, get_vdb, get_vdb_obj
 from rag_bot.rag_bot import run_bot
 from rag_bot.index_updater import update_index
@@ -34,7 +35,7 @@ def launch_bot(
     )
 
     logger.app_info('Model has been successfully created...')
-    run_bot(rag_chain)
+    run_bot(rag_chain, consts.RagMode(rag_mode))
 
 
 def create_vdb(
@@ -66,6 +67,7 @@ def update_vdb(
     embeddings = create_embeddings(embeddings_data.name)
     vector_db = get_vdb_obj(vdb_path, embeddings, vdb_name)
     update_index(vector_db, kdb_path, embeddings_data)
+
 
 def test_vdb(
     kdb_path: str,
