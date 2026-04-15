@@ -1,0 +1,132 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "create_kdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "knowledge_base",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/knowledge-base",
+            "justMyCode": false,
+            "args": ["create"]
+        },
+        {
+            "name": "replace_kdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "knowledge_base",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/knowledge-base",
+            "justMyCode": false,
+            "args": ["replace"]
+        },
+        {
+            "name": "kdb_all",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "knowledge_base",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/knowledge-base",
+            "justMyCode": false,
+            "args": ["all"]
+        },
+        {
+            "name": "create_vdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "create_vdb",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+            ]
+        },
+        {
+            "name": "update_vdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "update_vdb",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+            ]
+        },
+        {
+            "name": "run_bot",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "run_bot",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+
+                "gemma4:e2b",
+                //"qwen2.5:7b",
+
+                // "minimal",
+                // "few_shot"
+                //"cot"
+                "all"
+            ]
+        },
+        {
+            "name": "test_vdb",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "test_vdb",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+            ]
+        },
+        {
+            "name": "test_embeddings",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "test_embeddings",
+                "intfloat/multilingual-e5-small",
+                "chroma",
+                "gemma4:e2b",
+            ]
+        },
+        {
+            "name": "test_rag_bot",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "rag_bot",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/rag-bot",
+            "justMyCode": false,
+            "args": [
+                "test_rag_bot", 
+                "intfloat/multilingual-e5-small",
+                "chroma",
+                "gemma4:e2b"
+            ]
+        }
+    ]
+}

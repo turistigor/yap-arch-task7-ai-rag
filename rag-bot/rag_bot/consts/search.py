@@ -1,0 +1,1 @@
+MMR_SEARCH_TYPE = 'mmr'

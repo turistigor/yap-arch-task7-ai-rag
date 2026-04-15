@@ -1,0 +1,7 @@
+*__pycache__*
+*.pyc
+*/.venv
+
+.env
+rag-bot/logs/*
+!report_example.log
